@@ -3,80 +3,70 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>3サイト埋め込み</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>サイト切り替え</title>
 
 <style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
 body {
+    margin: 0;
     font-family: sans-serif;
-    background: #f5f5f5;
 }
 
-.site-container {
-    width: 100%;
-    padding: 10px;
+.buttons {
+    display: flex;
+    gap: 10px;
+    padding: 15px;
 }
 
-.site {
-    width: 100%;
-    margin-bottom: 20px;
-    background: #fff;
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.site h2 {
-    padding: 12px;
-    font-size: 18px;
+button {
+    flex: 1;
+    padding: 15px 5px;
+    border: none;
     background: #333;
     color: white;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+button.active {
+    background: #007bff;
 }
 
 iframe {
     width: 100%;
-    height: 500px;
+    height: calc(100vh - 75px);
     border: none;
-    display: block;
-}
-
-@media (max-width: 600px) {
-    iframe {
-        height: 400px;
-    }
 }
 </style>
 </head>
 
 <body>
 
-<div class="site-container">
-
-    <!-- サイト1 -->
-    <div class="site">
-        <h2>サイト1</h2>
-        <iframe src="https://ajinocan2me.github.io/apex_recruiting/"></iframe>
-    </div>
-
-    <!-- サイト2 -->
-    <div class="site">
-        <h2>サイト2</h2>
-        <iframe src="https://example.org"></iframe>
-    </div>
-
-    <!-- サイト3 -->
-    <div class="site">
-        <h2>サイト3</h2>
-        <iframe src="https://example.net"></iframe>
-    </div>
-
+<div class="buttons">
+    <button onclick="changeSite(0)" class="active">サイト1</button>
+    <button onclick="changeSite(1)">サイト2</button>
+    <button onclick="changeSite(2)">サイト3</button>
 </div>
+
+<iframe id="viewer"
+    src="https://example.com">
+</iframe>
+
+<script>
+const sites = [
+    "https://ajinocan2me.github.io/apex_recruiting/",
+    "https://example.org",
+    "https://example.net"
+];
+
+function changeSite(index) {
+    document.getElementById("viewer").src = sites[index];
+
+    document.querySelectorAll("button").forEach((btn, i) => {
+        btn.classList.toggle("active", i === index);
+    });
+}
+</script>
 
 </body>
 </html>
-
