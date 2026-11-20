@@ -2,55 +2,66 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>サイト切り替え</title>
-
-<style>
-body {
-    margin: 0;
-    font-family: sans-serif;
-}
-
-.buttons {
-    display: flex;
-    gap: 10px;
-    padding: 15px;
-}
-
-button {
-    flex: 1;
-    padding: 15px 5px;
-    border: none;
-    background: #333;
-    color: white;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-button.active {
-    background: #007bff;
-}
-
-iframe {
-    width: 100%;
-    height: calc(100vh - 75px);
-    border: none;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PREMIUM PORTAL</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<div class="buttons">
-    <button onclick="changeSite(0)" class="active">エペぼ</button>
-    <button onclick="changeSite(1)">キャラピック</button>
-    <button onclick="changeSite(2)">チームわけ</button>
-</div>
+<header class="header">
+    <div class="logo">APEX<span>.</span></div>
+    <div class="status">● SYSTEM ONLINE</div>
+</header>
 
-<iframe id="viewer"
-    src="https://example.com">
-</iframe>
+<main class="main">
+
+    <p class="subtitle">PREMIUM DIGITAL EXPERIENCE</p>
+
+    <h1>SELECT YOUR<br>DESTINATION.</h1>
+
+    <p class="description">
+        お好みのコンテンツを選択してください。
+    </p>
+
+    <div class="site-buttons">
+
+        <button class="site-btn active" onclick="changeSite(0)">
+            RECRUITING
+        </button>
+
+        <button class="site-btn" onclick="changeSite(1)">
+            LEGEND PICK
+        </button>
+
+        <button class="site-btn" onclick="changeSite(2)">
+            APEX TEAM
+        </button>
+
+    </div>
+
+    <section class="preview">
+
+        <div class="preview-header">
+            <span class="preview-title" id="siteTitle">
+                RECRUITING / PREVIEW
+            </span>
+
+            <span class="connected">
+                ● CONNECTED
+            </span>
+        </div>
+
+        <iframe
+            id="viewer"
+            src="https://ajinocan2me.github.io/apex_recruiting/"
+            title="サイトプレビュー">
+        </iframe>
+
+    </section>
+
+</main>
 
 <script>
 const sites = [
@@ -59,12 +70,23 @@ const sites = [
     "https://ajinocan2me.github.io/ApexTeam/"
 ];
 
+const siteNames = [
+    "RECRUITING",
+    "LEGEND PICK",
+    "APEX TEAM"
+];
+
 function changeSite(index) {
+
     document.getElementById("viewer").src = sites[index];
 
-    document.querySelectorAll("button").forEach((btn, i) => {
-        btn.classList.toggle("active", i === index);
-    });
+    document.getElementById("siteTitle").textContent =
+        siteNames[index] + " / PREVIEW";
+
+    document.querySelectorAll(".site-btn")
+        .forEach((button, i) => {
+            button.classList.toggle("active", i === index);
+        });
 }
 </script>
 
