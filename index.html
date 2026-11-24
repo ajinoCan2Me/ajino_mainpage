@@ -25,37 +25,29 @@
         お好みのコンテンツを選択してください。
     </p>
 
-    <div class="site-buttons">
-
-        <button class="site-btn active" onclick="changeSite(0)">
-            RECRUITING
-        </button>
-
-        <button class="site-btn" onclick="changeSite(1)">
-            LEGEND PICK
-        </button>
-
-        <button class="site-btn" onclick="changeSite(2)">
-            APEX TEAM
-        </button>
-
+    <!-- JSONからボタンを生成 -->
+    <div class="site-buttons" id="siteButtons">
+        読み込み中...
     </div>
 
+    <!-- プレビュー -->
     <section class="preview">
 
         <div class="preview-header">
+
             <span class="preview-title" id="siteTitle">
-                RECRUITING / PREVIEW
+                SELECT A SITE
             </span>
 
-            <span class="connected">
-                ● CONNECTED
+            <span class="connected" id="connectionStatus">
+                ● WAITING
             </span>
+
         </div>
 
         <iframe
             id="viewer"
-            src="https://ajinocan2me.github.io/apex_recruiting/"
+            src="about:blank"
             title="サイトプレビュー">
         </iframe>
 
@@ -64,30 +56,102 @@
 </main>
 
 <script>
-const sites = [
-    "https://ajinocan2me.github.io/apex_recruiting/",
-    "https://ajinocan2me.github.io/LegendPick/",
-    "https://ajinocan2me.github.io/ApexTeam/"
-];
 
-const siteNames = [
-    "RECRUITING",
-    "LEGEND PICK",
-    "APEX TEAM"
-];
+let sites = [];
 
+const buttons = document.getElementById("siteButtons");
+const viewer = document.getElementById("viewer");
+const siteTitle = document.getElementById("siteTitle");
+const status = document.getElementById("connectionStatus");
+
+// JSON読み込み
+async function loadSites() {
+
+    try {
+
+        const response = await fetch("./sites.json");
+
+        if (!response.ok) {
+            throw new Error("JSON読み込みエラー");
+        }
+
+        const data = await response.json();
+
+        sites = data.sites.filter(site =>
+            site.enabled === true &&
+            site.name &&
+            site.url &&
+            /^https:\/\/ajinocan2me\.github\.io\//i.test(site.url)
+        );
+
+        if (sites.length === 0) {
+            throw new Error("表示できるサイトがありません");
+        }
+
+        // ボタンを自動生成
+        buttons.innerHTML = "";
+
+        sites.forEach((site, index) => {
+
+            const button = document.createElement("button");
+
+            button.className = "site-btn";
+            button.textContent = site.name;
+
+            button.addEventListener("click", () => {
+                changeSite(index);
+            });
+
+            buttons.appendChild(button);
+
+        });
+
+        // 最初のサイトを表示
+        changeSite(0);
+
+    } catch (error) {
+
+        console.error(error);
+
+        buttons.textContent =
+            "サイト一覧の読み込みに失敗しました。";
+
+        status.textContent = "● ERROR";
+
+    }
+
+}
+
+// サイト切り替え
 function changeSite(index) {
 
-    document.getElementById("viewer").src = sites[index];
+    const site = sites[index];
 
-    document.getElementById("siteTitle").textContent =
-        siteNames[index] + " / PREVIEW";
+    if (!site) return;
 
+    viewer.src = site.url;
+
+    siteTitle.textContent =
+        site.name + " / PREVIEW";
+
+    status.textContent = "● CONNECTED";
+
+    // 選択中のボタンを変更
     document.querySelectorAll(".site-btn")
         .forEach((button, i) => {
-            button.classList.toggle("active", i === index);
+
+            button.classList.toggle(
+                "active",
+                i === index
+            );
+
         });
+
 }
+
+// 起動
+loadSites();
+
 </script>
 
 </body>
