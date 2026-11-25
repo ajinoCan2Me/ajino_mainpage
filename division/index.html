@@ -39,6 +39,11 @@
 <textarea id="output" readonly></textarea>
 
 <script>
+function insertText(text) {
+    const box = document.getElementById("message");
+    box.value += text;
+}
+
 function generateTeams(){
 
     const input=document.getElementById("input").value.trim();
