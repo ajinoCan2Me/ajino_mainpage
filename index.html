@@ -4,30 +4,7 @@
 <head>
   
 </head>
-
-<body>
-  
-  <button onclick="changePage('./score/')">戦績作成</button>
-  <button onclick="changePage('https://ajinocan2me.github.io/apex_recruiting/')">えぺぼ</button>
-  <button onclick="changePage('https://ajinoCan2Me.github.io/ApexTeam/')">えぺぼ</button>
-  <button onclick="changePage('https://ajinoCan2Me.github.io/LegendPick/')">ランダムレジェンドピック</button>
-  
-  <br></br>
-
-  <iframe
-    id="Flame"
-    src="https://ajinocan2me.github.io/ajino_mainpage/"
-    width="600"
-    height="600">
-  </iframe>
-
-  <script>
-    function changePage(page){
-      document.getElementById('Flame').src = page;
-    }
-  </script>
-
-  <style>
+    <style>
     /* スマホ対応 */
     @media screen and (max-width: 600px) {
       body {padding: 10px;}
@@ -35,6 +12,33 @@
       button {width: 100%;padding: 14px 5px;font-size: 14px;}
       .iframe-container { height: calc(100dvh - 180px);min-height: 300px;}
     }
-  </style>   
+  </style> 
+<body>
+
+  <div class="button-container">
+    <button onclick="changePage('./score/')">戦績作成</button>
+    <button onclick="changePage('https://ajinocan2me.github.io/apex_recruiting/')">えぺぼ</button>
+    <button onclick="changePage('https://ajinoCan2Me.github.io/ApexTeam/')">えぺぼ</button>
+    <button onclick="changePage('https://ajinoCan2Me.github.io/LegendPick/')">ランダムレジェンドピック</button>
+  </div>
+  
+  <br></br>
+  
+  <div class="iframe-container">
+  <iframe
+    id="Flame"
+    src="https://ajinocan2me.github.io/ajino_mainpage/"
+    width="600"
+    height="600">
+  </iframe>
+  </div>
+
+  <script>
+    function changePage(page){
+      document.getElementById('Flame').src = page;
+    }
+  </script>
+
+  
 </body>
 </html>
