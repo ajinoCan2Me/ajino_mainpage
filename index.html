@@ -26,7 +26,14 @@
       document.getElementById('Flame').src = page;
     }
   </script>
-    
+
+  /* スマホ対応 */
+    @media screen and (max-width: 600px) {
+      body {padding: 10px;}
+      .button-container {display: grid;grid-template-columns: repeat(2, 1fr);gap: 8px;}
+      button {width: 100%;padding: 14px 5px;font-size: 14px;}
+      .iframe-container { height: calc(100dvh - 180px);min-height: 300px;}
+    }
     
 </body>
 </html>
