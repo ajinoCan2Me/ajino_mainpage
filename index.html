@@ -1,40 +1,68 @@
 
 <!DOCTYPE html>
 <html lang="ja">
-  
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- CSS読み込み -->
-  <link rel="stylesheet" href="style.css">  
+  <title>APEX MAIN PAGE</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-  <div class="button-container">
-    <button onclick="changePage('./main/')">TOP</button>
-    <button onclick="changePage('./score/')">戦績作成</button>
-    <button onclick="changePage('https://ajinocan2me.github.io/apex_recruiting/')">えぺぼ</button>
-    <button onclick="changePage('./division/')">チーム分け</button>
-    <button onclick="changePage('https://ajinoCan2Me.github.io/LegendPick/')">ランダムレジェンドピック</button>
-  </div>
-  
-  <br></br>
-  
-  <div class="iframe-container">
-  <iframe
-    id="Flame"
-    src="./main/"
-  >
-  </iframe>
-  </div>
+  <!-- 左側固定メニュー -->
+  <aside class="sidebar">
+    <div class="logo">APEX<span>.</span></div>
+    <p class="menu-title">MENU</p>
+
+    <div class="button-container">
+      <button class="active" onclick="changePage('./main/', this)">
+        TOP
+      </button>
+
+      <button onclick="changePage('./score/', this)">
+        戦績作成
+      </button>
+
+      <button onclick="changePage('https://ajinocan2me.github.io/apex_recruiting/', this)">
+        えぺぼ
+      </button>
+
+      <button onclick="changePage('./division/', this)">
+        チーム分け
+      </button>
+
+      <button onclick="changePage('https://ajinoCan2Me.github.io/LegendPick/', this)">
+        ランダムレジェンドピック
+      </button>
+    </div>
+
+    <div class="sidebar-footer">
+      APEX PORTAL
+    </div>
+  </aside>
+
+  <!-- 右側メイン画面 -->
+  <main class="main-content">
+    <div class="iframe-container">
+      <iframe
+        id="Flame"
+        src="./main/"
+        title="APEX Content">
+      </iframe>
+    </div>
+  </main>
 
   <script>
-    function changePage(page){
+    function changePage(page, button) {
       document.getElementById('Flame').src = page;
+
+      document.querySelectorAll('.button-container button')
+        .forEach(btn => btn.classList.remove('active'));
+
+      button.classList.add('active');
     }
   </script>
 
-  
 </body>
 </html>
