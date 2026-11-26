@@ -54,13 +54,16 @@
   </main>
 
   <script>
-    function changePage(page, button) {
-      document.getElementById('Flame').src = page;
-
-      document.querySelectorAll('.button-container button')
-        .forEach(btn => btn.classList.remove('active'));
-
-      button.classList.add('active');
+    function changePage(page) {
+        const iframe = document.getElementById("Flame");
+    
+        if (!iframe) {
+            console.error("iframeが見つかりません");
+            return;
+        }
+    
+        iframe.src = new URL(page, window.location.href).href;
     }
+    
 </body>
 </html>
