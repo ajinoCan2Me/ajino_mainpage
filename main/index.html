@@ -3,8 +3,12 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#10141d">
+
 <title>APEX Ranked Map Rotation</title>
+
+<link rel="stylesheet" href="style.css">
 
 <style>
 * {
@@ -15,33 +19,42 @@ body {
   margin: 0;
   padding: 20px;
   background: #10141d;
-  color: white;
-  font-family: Arial, sans-serif;
+  color: #ffffff;
+  font-family: Arial, "Noto Sans JP", sans-serif;
 }
 
-.container {
+h1 {
+  text-align: center;
+  font-size: 25px;
+  margin: 15px 0 25px;
+}
+
+.map-container {
+  width: 100%;
   max-width: 500px;
-  margin: 30px auto;
-  background: #1b2230;
+  margin: 0 auto;
+  overflow: hidden;
   border: 1px solid #394355;
   border-radius: 14px;
-  overflow: hidden;
+  background: #1b2230;
+  box-shadow: 0 8px 30px rgba(0,0,0,.25);
 }
 
-.header {
+.map-header {
   padding: 18px;
-  text-align: center;
   background: #e84141;
+  text-align: center;
+  font-size: 17px;
   font-weight: bold;
   letter-spacing: 2px;
 }
 
-.section {
+.map-section {
   padding: 25px 15px;
   text-align: center;
 }
 
-.label {
+.map-label {
   color: #9ba7ba;
   font-size: 12px;
   letter-spacing: 2px;
@@ -51,201 +64,266 @@ body {
 .map-name {
   font-size: 30px;
   font-weight: bold;
-  margin-bottom: 25px;
+  margin-bottom: 28px;
+  overflow-wrap: anywhere;
 }
 
 .timer {
   color: #65e6c4;
-  font-size: 36px;
+  font-size: clamp(28px, 8vw, 38px);
   font-weight: bold;
   font-variant-numeric: tabular-nums;
 }
 
-.switch {
-  margin-top: 12px;
+.switch-time {
+  margin-top: 13px;
   color: #c3cbd8;
   font-size: 13px;
 }
 
-.next {
+.next-section {
   background: #252e3d;
   border-top: 1px solid #394355;
 }
 
-.next .map-name {
+.next-section .map-name {
   color: #f5c76a;
   margin-bottom: 0;
 }
 
-.footer {
-  padding: 12px;
+.map-footer {
+  padding: 13px;
   text-align: center;
-  font-size: 11px;
   color: #8793a6;
+  font-size: 11px;
+  overflow-wrap: anywhere;
 }
 
-.error {
+.map-error {
   color: #ff7777;
+}
+
+.source {
+  text-align: center;
+  margin: 18px 0;
+  font-size: 12px;
+}
+
+.source a {
+  color: #65bfff;
+  text-decoration: none;
+}
+
+.source a:hover {
+  text-decoration: underline;
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<h1>APEX RANKED MAP</h1>
 
-  <div class="header">
-    APEX RANKED ROTATION
+<div class="map-container">
+
+  <div class="map-header">
+    RANKED MAP ROTATION
   </div>
 
-  <div class="section">
+  <!-- 現在のマップ -->
+  <div class="map-section">
 
-    <div class="label">CURRENT MAP</div>
+    <div class="map-label">
+      CURRENT MAP
+    </div>
+
     <div id="current-map" class="map-name">
       Loading...
     </div>
 
-    <div class="label">REMAINING TIME</div>
+    <div class="map-label">
+      REMAINING TIME
+    </div>
+
     <div id="timer" class="timer">
       --:--:--
     </div>
 
-    <div class="switch">
+    <div class="switch-time">
       切り替え時間：
       <span id="switch-time">--</span>
     </div>
 
   </div>
 
-  <div class="section next">
+  <!-- 次のマップ -->
+  <div class="map-section next-section">
 
-    <div class="label">NEXT MAP</div>
+    <div class="map-label">
+      NEXT MAP
+    </div>
+
     <div id="next-map" class="map-name">
       Loading...
     </div>
 
   </div>
 
-  <div class="footer" id="updated">
-    データ取得中...
+  <!-- 更新情報 -->
+  <div id="updated" class="map-footer">
+    JSONデータ取得中...
   </div>
 
 </div>
 
+<div class="source">
+  Data Source：
+  <a
+    href="https://apexranked.com/map-rotation"
+    target="_blank"
+    rel="noopener noreferrer">
+    Apex Ranked
+  </a>
+</div>
+
 <script>
-const JSON_URL = "./data/ranked-map.json";
+(() => {
 
-let endTime = null;
+  // JSONファイルの場所
+  const JSON_URL = "../data/ranked-map.json";
 
-const el = id => document.getElementById(id);
+  let endTime = null;
 
-// 日本時間で日時を表示
-function formatDate(date) {
-  return new Intl.DateTimeFormat("ja-JP", {
-    timeZone: "Asia/Tokyo",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false
-  }).format(date);
-}
+  const el = id => document.getElementById(id);
 
-// 残り時間を表示
-function countdown() {
-  if (!endTime) return;
-
-  const remaining = Math.max(
-    0,
-    Math.floor((endTime - Date.now()) / 1000)
-  );
-
-  const days = Math.floor(remaining / 86400);
-  const hours = Math.floor((remaining % 86400) / 3600);
-  const minutes = Math.floor((remaining % 3600) / 60);
-  const seconds = remaining % 60;
-
-  let result;
-
-  if (days > 0) {
-    result = `${days}日 ${hours}時間 ${minutes}分 ${seconds}秒`;
-  } else {
-    result = [
-      String(hours).padStart(2, "0"),
-      String(minutes).padStart(2, "0"),
-      String(seconds).padStart(2, "0")
-    ].join(":");
+  // 日本時間で表示
+  function formatDate(date) {
+    return new Intl.DateTimeFormat("ja-JP", {
+      timeZone: "Asia/Tokyo",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false
+    }).format(date);
   }
 
-  el("timer").textContent = result;
-}
+  // カウントダウン
+  function updateTimer() {
 
-// JSONを取得
-async function loadMap() {
-  try {
-    const response = await fetch(
-      JSON_URL + "?t=" + Date.now(),
-      { cache: "no-store" }
+    if (!endTime) return;
+
+    const remaining = Math.max(
+      0,
+      Math.floor((endTime - Date.now()) / 1000)
     );
 
-    if (!response.ok) {
-      throw new Error("JSON取得失敗: " + response.status);
+    const days = Math.floor(remaining / 86400);
+    const hours = Math.floor((remaining % 86400) / 3600);
+    const minutes = Math.floor((remaining % 3600) / 60);
+    const seconds = remaining % 60;
+
+    if (days > 0) {
+      el("timer").textContent =
+        `${days}日 ${hours}時間 ${minutes}分 ${seconds}秒`;
+    } else {
+      el("timer").textContent = [
+        String(hours).padStart(2, "0"),
+        String(minutes).padStart(2, "0"),
+        String(seconds).padStart(2, "0")
+      ].join(":");
     }
 
-    const data = await response.json();
-
-    if (
-      !data.current?.name ||
-      !data.next?.name ||
-      !data.current?.ends_at
-    ) {
-      throw new Error("JSONの形式が正しくありません");
+    if (remaining === 0) {
+      el("timer").textContent = "切り替え待ち";
     }
-
-    const parsedEnd = Date.parse(data.current.ends_at);
-
-    if (!Number.isFinite(parsedEnd)) {
-      throw new Error("終了時刻が不正です");
-    }
-
-    endTime = parsedEnd;
-
-    el("current-map").textContent =
-      data.current.name;
-
-    el("next-map").textContent =
-      data.next.name;
-
-    el("switch-time").textContent =
-      formatDate(new Date(endTime));
-
-    el("updated").textContent =
-      "最終更新：" +
-      formatDate(new Date(data.fetched_at || Date.now()));
-
-    el("updated").classList.remove("error");
-
-    countdown();
-
-  } catch (error) {
-    console.error(error);
-
-    el("updated").textContent =
-      "データ取得失敗：" + error.message;
-
-    el("updated").classList.add("error");
   }
-}
 
-// 初回読み込み
-loadMap();
+  // JSON読み込み
+  async function loadMap() {
 
-// カウントダウンは毎秒更新
-setInterval(countdown, 1000);
+    try {
 
-// JSONは60秒ごとに再取得
-setInterval(loadMap, 60000);
+      const response = await fetch(
+        JSON_URL + "?t=" + Date.now(),
+        { cache: "no-store" }
+      );
 
+      if (!response.ok) {
+        throw new Error(
+          "HTTP Error: " + response.status
+        );
+      }
+
+      const data = await response.json();
+
+      if (
+        !data.current ||
+        !data.current.name ||
+        !data.current.ends_at ||
+        !data.next ||
+        !data.next.name
+      ) {
+        throw new Error("JSONのデータ形式が不正です");
+      }
+
+      const parsedEnd = Date.parse(
+        data.current.ends_at
+      );
+
+      if (!Number.isFinite(parsedEnd)) {
+        throw new Error("終了時刻を読み込めません");
+      }
+
+      // 現在のマップ
+      el("current-map").textContent =
+        data.current.name;
+
+      // 次のマップ
+      el("next-map").textContent =
+        data.next.name;
+
+      // 終了時刻
+      endTime = parsedEnd;
+
+      el("switch-time").textContent =
+        formatDate(new Date(endTime));
+
+      // 最終更新時刻
+      el("updated").textContent =
+        "最終データ更新：" +
+        formatDate(
+          new Date(data.fetched_at || Date.now())
+        );
+
+      el("updated").classList.remove("map-error");
+
+      updateTimer();
+
+      console.log("APEX MAP DATA:", data);
+
+    } catch (error) {
+
+      console.error("MAP DATA ERROR:", error);
+
+      el("updated").textContent =
+        "データ取得失敗：" + error.message;
+
+      el("updated").classList.add("map-error");
+
+    }
+  }
+
+  // 初回取得
+  loadMap();
+
+  // 1秒ごとに残り時間更新
+  setInterval(updateTimer, 1000);
+
+  // 60秒ごとにJSON再取得
+  setInterval(loadMap, 60000);
+
+})();
 </script>
 
 </body>
