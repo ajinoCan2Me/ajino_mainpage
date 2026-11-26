@@ -62,20 +62,5 @@
 
       button.classList.add('active');
     }
-
-    // 例：キー不要でマップ情報を返してくれるコミュニティAPI（変更される場合あり）
-    fetch('https://alphaleagues.com')
-      .then(res => res.json())
-      .then(data => {
-        document.getElementById('map').innerHTML = `
-          <p>現在: ${data.br.current.map}（残り ${data.br.current.remainingTimer}）</p>
-          <p>次: ${data.br.next.map}</p>
-        `;
-      })
-      .catch(() => {
-        document.getElementById('map').textContent = '取得エラー';
-      });
-  </script>
-
 </body>
 </html>
