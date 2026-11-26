@@ -1,0 +1,87 @@
+
+name: Update Apex Map Rotation
+
+on:
+  schedule:
+    - cron: "2-57/5 * * * *"
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  update-and-deploy:
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch ApexRanked JSON
+        run: |
+          mkdir -p data
+
+          python - <<'PY'
+          import json
+          import urllib.request
+          from pathlib import Path
+          from datetime import datetime, timezone
+
+          url = "https://apexranked.com/api/ranked-map"
+
+          req = urllib.request.Request(
+              url,
+              headers={
+                  "User-Agent": "Mozilla/5.0",
+                  "Accept": "application/json"
+              }
+          )
+
+          with urllib.request.urlopen(req, timeout=30) as response:
+              data = json.loads(response.read().decode("utf-8"))
+
+          if not data.get("current", {}).get("name"):
+              raise ValueError("Current map not found")
+
+          if not data.get("next", {}).get("name"):
+              raise ValueError("Next map not found")
+
+          if not data.get("current", {}).get("ends_at"):
+              raise ValueError("End time not found")
+
+          data["fetched_at"] = datetime.now(
+              timezone.utc
+          ).isoformat()
+
+          Path("data/ranked-map.json").write_text(
+              json.dumps(data, ensure_ascii=False, indent=2),
+              encoding="utf-8"
+          )
+
+          print("Current:", data["current"]["name"])
+          print("Next:", data["next"]["name"])
+          print("JSON saved successfully")
+          PY
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
