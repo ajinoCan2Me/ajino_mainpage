@@ -2,208 +2,250 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>APEX MAIN PAGE</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  
-<div id="apex-rotation">
-  <div class="apex-header">APEX RANKED ROTATION</div>
-
-  <div class="apex-current">
-    <div class="apex-label">CURRENT MAP</div>
-    <div id="current-map" class="apex-map">Loading...</div>
-
-    <div class="apex-label">REMAINING TIME</div>
-    <div id="remaining-time" class="apex-time">--:--:--</div>
-
-    <div class="apex-switch">
-      切り替え時間：
-      <span id="switch-time">--</span>
-    </div>
-  </div>
-
-  <div class="apex-next">
-    <div class="apex-label">NEXT MAP</div>
-    <div id="next-map" class="apex-next-map">Loading...</div>
-  </div>
-
-  <div id="apex-updated">データ取得中...</div>
-</div>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>APEX Ranked Map Rotation</title>
 
 <style>
-#apex-rotation {
-  background: #151922;
-  color: #fff;
-  border: 1px solid #343b49;
-  border-radius: 12px;
-  overflow: hidden;
-  max-width: 500px;
-  font-family: Arial, sans-serif;
-  text-align: center;
+* {
+  box-sizing: border-box;
 }
 
-#apex-rotation .apex-header {
+body {
+  margin: 0;
+  padding: 20px;
+  background: #10141d;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+.container {
+  max-width: 500px;
+  margin: 30px auto;
+  background: #1b2230;
+  border: 1px solid #394355;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.header {
+  padding: 18px;
+  text-align: center;
   background: #e84141;
-  padding: 14px;
   font-weight: bold;
   letter-spacing: 2px;
 }
 
-#apex-rotation .apex-current {
+.section {
   padding: 25px 15px;
+  text-align: center;
 }
 
-#apex-rotation .apex-label {
+.label {
   color: #9ba7ba;
   font-size: 12px;
   letter-spacing: 2px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
-#apex-rotation .apex-map {
+.map-name {
   font-size: 30px;
   font-weight: bold;
   margin-bottom: 25px;
 }
 
-#apex-rotation .apex-time {
+.timer {
+  color: #65e6c4;
   font-size: 36px;
   font-weight: bold;
-  color: #65e6c4;
   font-variant-numeric: tabular-nums;
 }
 
-#apex-rotation .apex-switch {
+.switch {
+  margin-top: 12px;
   color: #c3cbd8;
   font-size: 13px;
-  margin-top: 12px;
 }
 
-#apex-rotation .apex-next {
-  background: #202735;
-  padding: 20px;
-  border-top: 1px solid #343b49;
+.next {
+  background: #252e3d;
+  border-top: 1px solid #394355;
 }
 
-#apex-rotation .apex-next-map {
-  font-size: 23px;
-  font-weight: bold;
+.next .map-name {
   color: #f5c76a;
+  margin-bottom: 0;
 }
 
-#apex-rotation #apex-updated {
-  color: #788598;
+.footer {
+  padding: 12px;
+  text-align: center;
   font-size: 11px;
-  padding: 10px;
+  color: #8793a6;
+}
+
+.error {
+  color: #ff7777;
 }
 </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="header">
+    APEX RANKED ROTATION
+  </div>
+
+  <div class="section">
+
+    <div class="label">CURRENT MAP</div>
+    <div id="current-map" class="map-name">
+      Loading...
+    </div>
+
+    <div class="label">REMAINING TIME</div>
+    <div id="timer" class="timer">
+      --:--:--
+    </div>
+
+    <div class="switch">
+      切り替え時間：
+      <span id="switch-time">--</span>
+    </div>
+
+  </div>
+
+  <div class="section next">
+
+    <div class="label">NEXT MAP</div>
+    <div id="next-map" class="map-name">
+      Loading...
+    </div>
+
+  </div>
+
+  <div class="footer" id="updated">
+    データ取得中...
+  </div>
+
+</div>
 
 <script>
-(() => {
-  const API ="https://proxy.cors.dev/https://apexranked.com/api/ranked-map";
+const JSON_URL = "./data/ranked-map.json";
 
-  let endTime = null;
+let endTime = null;
 
-  const $ = id => document.getElementById(id);
+const el = id => document.getElementById(id);
 
-  function formatTime(seconds) {
-    seconds = Math.max(0, Math.floor(seconds));
+// 日本時間で日時を表示
+function formatDate(date) {
+  return new Intl.DateTimeFormat("ja-JP", {
+    timeZone: "Asia/Tokyo",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  }).format(date);
+}
 
-    const days = Math.floor(seconds / 86400);
-    const hours = Math.floor((seconds % 86400) / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
+// 残り時間を表示
+function countdown() {
+  if (!endTime) return;
 
-    if (days > 0) {
-      return `${days}日 ${hours}時間 ${minutes}分 ${secs}秒`;
-    }
+  const remaining = Math.max(
+    0,
+    Math.floor((endTime - Date.now()) / 1000)
+  );
 
-    return [
+  const days = Math.floor(remaining / 86400);
+  const hours = Math.floor((remaining % 86400) / 3600);
+  const minutes = Math.floor((remaining % 3600) / 60);
+  const seconds = remaining % 60;
+
+  let result;
+
+  if (days > 0) {
+    result = `${days}日 ${hours}時間 ${minutes}分 ${seconds}秒`;
+  } else {
+    result = [
       String(hours).padStart(2, "0"),
       String(minutes).padStart(2, "0"),
-      String(secs).padStart(2, "0")
+      String(seconds).padStart(2, "0")
     ].join(":");
   }
 
-  function formatDate(date) {
-    return new Intl.DateTimeFormat("ja-JP", {
-      timeZone: "Asia/Tokyo",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false
-    }).format(date);
-  }
+  el("timer").textContent = result;
+}
 
-  async function loadRotation() {
-    try {
-      const response = await fetch(API, {
-        cache: "no-store"
-      });
-
-      if (!response.ok) {
-        throw new Error("API取得エラー");
-      }
-
-      const data = await response.json();
-
-      if (!data.current || !data.next) {
-        throw new Error("データ形式が不正です");
-      }
-
-      $("current-map").textContent = data.current.name;
-      $("next-map").textContent = data.next.name;
-
-      endTime = new Date(data.current.ends_at).getTime();
-
-      if (!Number.isFinite(endTime)) {
-        throw new Error("終了時刻が不正です");
-      }
-
-      $("switch-time").textContent =
-        formatDate(new Date(endTime));
-
-      updateCountdown();
-
-      $("apex-updated").textContent =
-        "最終取得：" + formatDate(new Date());
-
-    } catch (error) {
-      console.error(error);
-      $("apex-updated").textContent =
-        "データ取得に失敗しました";
-    }
-  }
-
-  function updateCountdown() {
-    if (!endTime) return;
-
-    const remaining = Math.max(
-      0,
-      Math.floor((endTime - Date.now()) / 1000)
+// JSONを取得
+async function loadMap() {
+  try {
+    const response = await fetch(
+      JSON_URL + "?t=" + Date.now(),
+      { cache: "no-store" }
     );
 
-    $("remaining-time").textContent =
-      formatTime(remaining);
-
-    if (remaining <= 0) {
-      loadRotation();
+    if (!response.ok) {
+      throw new Error("JSON取得失敗: " + response.status);
     }
+
+    const data = await response.json();
+
+    if (
+      !data.current?.name ||
+      !data.next?.name ||
+      !data.current?.ends_at
+    ) {
+      throw new Error("JSONの形式が正しくありません");
+    }
+
+    const parsedEnd = Date.parse(data.current.ends_at);
+
+    if (!Number.isFinite(parsedEnd)) {
+      throw new Error("終了時刻が不正です");
+    }
+
+    endTime = parsedEnd;
+
+    el("current-map").textContent =
+      data.current.name;
+
+    el("next-map").textContent =
+      data.next.name;
+
+    el("switch-time").textContent =
+      formatDate(new Date(endTime));
+
+    el("updated").textContent =
+      "最終更新：" +
+      formatDate(new Date(data.fetched_at || Date.now()));
+
+    el("updated").classList.remove("error");
+
+    countdown();
+
+  } catch (error) {
+    console.error(error);
+
+    el("updated").textContent =
+      "データ取得失敗：" + error.message;
+
+    el("updated").classList.add("error");
   }
+}
 
-  // 初回取得
-  loadRotation();
+// 初回読み込み
+loadMap();
 
-  // 残り時間を1秒ごとに更新
-  setInterval(updateCountdown, 1000);
+// カウントダウンは毎秒更新
+setInterval(countdown, 1000);
 
-  // JSONを60秒ごとに再取得
-  setInterval(loadRotation, 60000);
-})();
+// JSONは60秒ごとに再取得
+setInterval(loadMap, 60000);
+
 </script>
 
 </body>
