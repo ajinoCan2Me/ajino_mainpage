@@ -39,17 +39,25 @@
     </div>
   </main>
 
-  <script>
-    function changePage(page) {
-        const iframe = document.getElementById("Flame");
-    
-        if (!iframe) {
-            console.error("iframeが見つかりません");
-            return;
-        }
-    
-        iframe.src = new URL(page, window.location.href).href;
+  
+<script>
+const sites = [
+    "https://ajinocan2me.github.io/apex_recruiting/",
+    "https://ajinocan2me.github.io/LegendPick/",
+    "https://ajinocan2me.github.io/ApexTeam/"
+];
+
+function changeSite(index) {
+    if (index < 0 || index >= sites.length) {
+        console.error("無効なサイト番号です:", index);
+        return;
     }
+
+    // 選択したサイトへ直接移動
+    window.location.href = sites[index];
+}
+</script>
+
     
 </body>
 </html>
