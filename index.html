@@ -41,20 +41,23 @@
 
   
 <script>
-const sites = [
-    "https://ajinocan2me.github.io/apex_recruiting/",
-    "https://ajinocan2me.github.io/LegendPick/",
-    "https://ajinocan2me.github.io/ApexTeam/"
-];
+function changePage(page, button) {
 
-function changeSite(index) {
-    if (index < 0 || index >= sites.length) {
-        console.error("無効なサイト番号です:", index);
+    // iframeの画面を切り替える
+    const iframe = document.getElementById('Flame');
+
+    if (!iframe) {
+        console.error('Flameが見つかりません');
         return;
     }
 
-    // 選択したサイトへ直接移動
-    window.location.href = sites[index];
+    iframe.src = page;
+
+    // ボタンの選択状態を更新
+    document.querySelectorAll('.button-container button')
+        .forEach(btn => btn.classList.remove('active'));
+
+    button.classList.add('active');
 }
 </script>
 
